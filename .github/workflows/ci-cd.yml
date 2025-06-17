@@ -29,6 +29,13 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      # Prepare Go dependencies
+      - name: Tidy Go modules
+        run: |
+          cd backend-go
+          go mod tidy
+          cd ..
+
       # Build and push Go backend
       - name: Build Go Docker image
         run: docker build -t go-backend ./backend-go
