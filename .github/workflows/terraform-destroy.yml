@@ -18,29 +18,38 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
+          # These secrets must be configured in your GitHub repository settings
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          # The AWS_REGION is pulled from a higher-level environment variable (e.g., from your main CI/CD workflow env)
+          # or an explicit env block in this job if needed.
+          aws-region: ${{ env.AWS_REGION }} 
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.7
+          terraform_version: 1.5.7 # Pinning to a specific Terraform version is good practice
 
       - name: Terraform Init
+        # Assumes your Terraform configuration files are located in a directory named 'infra'
         run: terraform -chdir=infra init
 
       - name: Confirm destroy
+        # This step acts as a safety gate, requiring explicit confirmation.
         run: |
           if [ "${{ github.event.inputs.confirm_destroy }}" != "YES" ]; then
             echo "You must type YES in the confirmation box to proceed with destroy." >&2
-            exit 1
+            exit 1 # Exits the job with a failure, preventing destruction
           fi
 
       - name: Echo warning
-        run: echo "WARNING: Destroying all infrastructure in this environment!"
+        # A simple warning message, now using the preferred literal block scalar for consistency.
+        run: | 
+          echo "WARNING: Destroying all infrastructure in this environment!"
 
       - name: Terraform Destroy
-        run: terraform -chdir=infra destroy -auto-approve
-        env:
-          AWS_REGION: ${{ env.AWS_REGION }}
+        # Executes the Terraform destroy command to tear down resources.
+        # -auto-approve is used here because the 'confirm_destroy' input serves as a manual gate.
+        run: |
+          terraform -chdir=infra destroy -auto-approve
+        # Note: AWS_REGION is inherited from the 'configure-aws-credentials' step's environment.
