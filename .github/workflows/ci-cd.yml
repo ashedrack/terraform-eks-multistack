@@ -1,0 +1,90 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: eu-west-2
+  ECR_GO_REPO: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-2.amazonaws.com/go-backend
+  ECR_JAVA_REPO: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-2.amazonaws.com/java-backend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Build and push Go backend
+      - name: Build Go Docker image
+        run: docker build -t go-backend ./backend-go
+
+      - name: Tag Go Docker image
+        run: docker tag go-backend:latest $ECR_GO_REPO:latest
+
+      - name: Push Go Docker image
+        run: docker push $ECR_GO_REPO:latest
+
+      # Build and push Java backend
+      - name: Build Java Docker image
+        run: docker build -t java-backend ./backend-java
+
+      - name: Tag Java Docker image
+        run: docker tag java-backend:latest $ECR_JAVA_REPO:latest
+
+      - name: Push Java Docker image
+        run: docker push $ECR_JAVA_REPO:latest
+
+  # Optionally add jobs for Terraform and EKS deployment here
+
+  # Example: Terraform Plan/Apply
+  terraform:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init
+        run: terraform -chdir=infra init
+      - name: Terraform Plan
+        run: terraform -chdir=infra plan
+      # - name: Terraform Apply
+      #   run: terraform -chdir=infra apply -auto-approve
+
+  # Example: Deploy to EKS
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+      - name: Update Kubeconfig
+        run: aws eks update-kubeconfig --region $AWS_REGION --name <your-eks-cluster-name>
+      - name: Deploy to EKS
+        run: |
+          kubectl set image deployment/go-backend go-backend=$ECR_GO_REPO:latest -n <namespace>
+          kubectl set image deployment/java-backend java-backend=$ECR_JAVA_REPO:latest -n <namespace>
