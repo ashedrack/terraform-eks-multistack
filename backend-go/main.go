@@ -9,9 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	httpswagger "github.com/swaggo/http-swagger/v2"
-	// _ "cloud-native-reference-platform/backend/docs" // Uncomment after generating docs with swag
-
 	"cloud-native-reference-platform/backend/handlers"
 )
 

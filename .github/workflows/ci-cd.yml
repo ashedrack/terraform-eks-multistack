@@ -41,14 +41,8 @@ jobs:
       - name: Fetch and Tidy Go modules
         run: |
           cd backend-go
-          echo "Attempting to resolve problematic http-swagger/v2 dependency directly..."
-          # Force Go to fetch this specific module directly from GitHub, bypassing proxy.
-          # This is a workaround for persistent 'unknown revision' errors.
-          GOPROXY=direct go get github.com/swaggo/http-swagger/v2@v2.0.14
-          
-          # Then, run go mod tidy to update go.sum based on the resolved version
+          # Run go mod tidy to ensure dependencies are up to date
           go mod tidy
-          
           # Optional: Verify module integrity
           go mod verify
           echo "Go module operations completed successfully."
