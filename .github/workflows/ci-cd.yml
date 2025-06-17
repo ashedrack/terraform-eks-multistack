@@ -84,7 +84,7 @@ jobs:
       - name: Terraform Apply
         run: terraform -chdir=infra apply -auto-approve
 
-  # Example: Deploy to EKS Job
+  # Deploy to EKS Job
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
