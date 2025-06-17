@@ -1,0 +1,50 @@
+# Global
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+crash.log
+
+# Go
+/backend/bin/
+/backend/coverage.out
+/backend/docs/
+/backend/go.sum
+/backend/.env
+/backend/.vscode/
+
+# Java
+/backend-java/target/
+/backend-java/.idea/
+/backend-java/.classpath
+/backend-java/.project
+/backend-java/.settings/
+
+# Node/Frontend (future)
+/frontend/node_modules/
+/frontend/build/
+
+# Docker
+*.env
+.env.*
+
+# OS junk
+*.bak
+
+# Python (if any)
+__pycache__/
+*.pyc
+
+# VSCode
+.vscode/
+
+# Test output
+/test-results/
+/coverage/

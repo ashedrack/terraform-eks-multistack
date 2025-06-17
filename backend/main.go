@@ -1,0 +1,81 @@
+package main
+
+import (
+	"context"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	httpswagger "github.com/swaggo/http-swagger/v2"
+	// _ "cloud-native-reference-platform/backend/docs" // Uncomment after generating docs with swag
+
+	"cloud-native-reference-platform/backend/handlers"
+)
+
+func main() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", handlers.HealthzHandler)
+	mux.HandleFunc("/api/v1/hello", handlers.HelloHandler)
+	mux.HandleFunc("/api/v1/info", handlers.InfoHandler)
+	mux.HandleFunc("/api/v1/echo", handlers.EchoHandler)
+	mux.HandleFunc("/api/v1/config", handlers.ConfigHandler)
+	mux.HandleFunc("/api/v1/metrics", handlers.MetricsHandler)
+
+	// User CRUD endpoints
+	mux.HandleFunc("/api/v1/users", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handlers.CreateUserHandler(w, r)
+		case http.MethodGet:
+			handlers.ListUsersHandler(w, r)
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	})
+	mux.HandleFunc("/api/v1/users/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handlers.GetUserHandler(w, r)
+		case http.MethodPut:
+			handlers.UpdateUserHandler(w, r)
+		case http.MethodDelete:
+			handlers.DeleteUserHandler(w, r)
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	})
+
+	// Swagger UI endpoint
+	mux.Handle("/swagger/", httpswagger.WrapHandler)
+
+	// CORS middleware
+	handler := handlers.CORSMiddleware(mux)
+
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: handler,
+	}
+
+	// Graceful shutdown
+	go func() {
+		log.Println("[INFO] Starting server on :8080...")
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("[ERROR] Server failed: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("[INFO] Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("[ERROR] Server forced to shutdown: %v", err)
+	}
+	log.Println("[INFO] Server exited properly.")
+}
