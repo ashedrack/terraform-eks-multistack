@@ -29,6 +29,4 @@ resource "aws_iam_role_policy_attachment" "ec2_container_registry_read_only" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-output "eks_node_group_role_arn" {
-  value = aws_iam_role.eks_node_group.arn
-}
+

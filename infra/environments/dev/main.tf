@@ -14,9 +14,9 @@ module "eks" {
   source              = "../../modules/eks"
   cluster_name        = "my-eks-cluster"  # Changed to match the name expected in CI/CD workflow
   cluster_version     = var.eks_version
-  private_subnet_ids  = module.network.private_subnet_ids
+  subnet_ids          = module.network.private_subnet_ids
   vpc_id              = module.network.vpc_id
-  managed_node_groups = {
+  eks_managed_node_groups = {
     default = {
       desired_capacity = 2
       max_capacity     = 3

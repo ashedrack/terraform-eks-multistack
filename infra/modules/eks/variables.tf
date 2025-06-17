@@ -9,9 +9,15 @@ variable "cluster_version" {
   default     = "1.29"
 }
 
-variable "private_subnet_ids" {
-  description = "List of private subnet IDs"
+variable "subnet_ids" {
+  description = "List of subnet IDs for the EKS cluster"
   type        = list(string)
+}
+
+variable "private_subnet_ids" {
+  description = "List of private subnet IDs (deprecated, use subnet_ids instead)"
+  type        = list(string)
+  default     = []
 }
 
 variable "vpc_id" {
@@ -19,7 +25,7 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "managed_node_groups" {
+variable "eks_managed_node_groups" {
   description = "Map of EKS managed node group definitions to forward to the upstream module."
   type        = any
   default     = {}

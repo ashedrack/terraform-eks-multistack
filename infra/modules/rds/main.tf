@@ -12,6 +12,4 @@ resource "aws_db_instance" "postgres" {
   tags = merge(var.tags, { Name = "${var.name}-rds" })
 }
 
-output "rds_endpoint" {
-  value = aws_db_instance.postgres.endpoint
-}
+
