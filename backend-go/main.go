@@ -50,7 +50,6 @@ func main() {
 	})
 
 	// Swagger UI endpoint
-	mux.Handle("/swagger/", httpswagger.WrapHandler)
 
 	// CORS middleware
 	handler := handlers.CORSMiddleware(mux)
