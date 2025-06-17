@@ -101,8 +101,8 @@ jobs:
         with:
           version: 'latest'
       - name: Update Kubeconfig
-        run: aws eks update-kubeconfig --region $AWS_REGION --name <your-eks-cluster-name>
+        run: aws eks update-kubeconfig --region $AWS_REGION --name my-eks-cluster
       - name: Deploy to EKS
         run: |
-          kubectl set image deployment/go-backend go-backend=$ECR_GO_REPO:latest -n <namespace>
-          kubectl set image deployment/java-backend java-backend=$ECR_JAVA_REPO:latest -n <namespace>
+          kubectl set image deployment/go-backend go-backend=$ECR_GO_REPO:latest -n test-deply
+          kubectl set image deployment/java-backend java-backend=$ECR_JAVA_REPO:latest -n test-deploy
