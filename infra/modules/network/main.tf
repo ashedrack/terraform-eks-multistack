@@ -31,6 +31,42 @@ resource "aws_subnet" "private" {
   })
 }
 
+# Database subnet group for RDS
+resource "aws_db_subnet_group" "database" {
+  name       = "${var.name}-db-subnet-group"
+  subnet_ids = aws_subnet.private[*].id
+  tags = merge(var.tags, {
+    Name = "${var.name}-db-subnet-group"
+  })
+}
+
+# Security group for RDS
+resource "aws_security_group" "database" {
+  name        = "${var.name}-db-sg"
+  description = "Security group for RDS database"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+    description = "Allow PostgreSQL traffic from within VPC"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+
+  tags = merge(var.tags, {
+    Name = "${var.name}-db-sg"
+  })
+}
+
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
   tags = merge(var.tags, { Name = "${var.name}-igw" })

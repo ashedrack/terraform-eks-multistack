@@ -31,8 +31,8 @@ jobs:
           terraform_version: 1.5.7 # Pinning to a specific Terraform version is good practice
 
       - name: Terraform Init
-        # Assumes your Terraform configuration files are located in a directory named 'infra'
-        run: terraform -chdir=infra init
+        # Using the dev environment configuration
+        run: terraform -chdir=infra/environments/dev init
 
       - name: Confirm destroy
         # This step acts as a safety gate, requiring explicit confirmation.
@@ -51,5 +51,5 @@ jobs:
         # Executes the Terraform destroy command to tear down resources.
         # -auto-approve is used here because the 'confirm_destroy' input serves as a manual gate.
         run: |
-          terraform -chdir=infra destroy -auto-approve
+          terraform -chdir=infra/environments/dev destroy -auto-approve
         # Note: AWS_REGION is inherited from the 'configure-aws-credentials' step's environment.
