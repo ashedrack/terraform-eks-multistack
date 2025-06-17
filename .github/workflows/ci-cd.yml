@@ -30,24 +30,21 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # --- NEW / MODIFIED STEPS FOR GO DEPENDENCY RESOLUTION ---
+      # --- GO LANGUAGE SPECIFIC SETUP ---
       - name: Set up Go environment
         uses: actions/setup-go@v5
         with:
           go-version: '1.22' # Ensure this matches the Go version declared in your backend-go/go.mod
 
-      - name: Fetch and Tidy Go modules with dynamic resolution
+      - name: Tidy Go modules
+        # This step now simply runs 'go mod tidy'
+        # It relies on backend-go/go.mod having correctly pinned versions.
+        # The 'go get -u' and 'go clean -modcache' workarounds are removed.
         run: |
           cd backend-go
-          echo "Attempting to clean Go mod cache and fetch latest compatible http-swagger/v2 for this build..."
-          go clean -modcache # Clear Go module cache in the runner's environment
-          # Attempt to get the latest compatible version of http-swagger/v2
-          # This will update go.mod and go.sum on the runner's filesystem for this build only.
-          go get -u github.com/swaggo/http-swagger/v2
-          go mod tidy # Then tidy to update go.sum based on the resolved version
-          echo "Go module tidy completed successfully."
+          go mod tidy # This will update go.sum if needed and verify go.mod
           cd ..
-      # --- END GO DEPENDENCY RESOLUTION STEPS ---
+      # --- END GO LANGUAGE SPECIFIC SETUP ---
 
       # Build and push Go backend
       - name: Build Go Docker image
