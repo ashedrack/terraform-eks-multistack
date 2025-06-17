@@ -78,11 +78,11 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Terraform Init
-        run: terraform  init 
+        run: terraform -chdir=infra init
       - name: Terraform Plan
-        run: terraform  plan
+        run: terraform -chdir=infra plan
       - name: Terraform Apply
-        run: terraform  apply -auto-approve 
+        run: terraform -chdir=infra apply -auto-approve
 
   # Example: Deploy to EKS Job
   deploy:
