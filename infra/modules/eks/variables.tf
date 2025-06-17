@@ -19,6 +19,13 @@ variable "vpc_id" {
   type        = string
 }
 
+variable "managed_node_groups" {
+  description = "Map of EKS managed node group definitions to forward to the upstream module."
+  type        = any
+  default     = {}
+}
+
+
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)
