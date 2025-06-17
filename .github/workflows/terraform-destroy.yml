@@ -23,7 +23,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           # The AWS_REGION is pulled from a higher-level environment variable (e.g., from your main CI/CD workflow env)
           # or an explicit env block in this job if needed.
-          aws-region: ${{ env.AWS_REGION }} 
+          aws-region: us-east-1 
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
