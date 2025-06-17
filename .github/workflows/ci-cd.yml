@@ -100,9 +100,19 @@ jobs:
         uses: azure/setup-kubectl@v3
         with:
           version: 'latest'
+      - name: Check if EKS cluster exists
+        id: check_eks
+        run: |
+          if aws eks describe-cluster --region $AWS_REGION --name my-eks-cluster > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
       - name: Update Kubeconfig
+        if: steps.check_eks.outputs.exists == 'true'
         run: aws eks update-kubeconfig --region $AWS_REGION --name my-eks-cluster
       - name: Deploy to EKS
+        if: steps.check_eks.outputs.exists == 'true'
         run: |
           kubectl set image deployment/go-backend go-backend=$ECR_GO_REPO:latest -n test-deply
           kubectl set image deployment/java-backend java-backend=$ECR_JAVA_REPO:latest -n test-deploy
