@@ -70,8 +70,6 @@ jobs:
         run: docker push $ECR_JAVA_REPO:latest
 
   # Optionally add jobs for Terraform and EKS deployment here
-
-  # Example: Terraform Plan/Apply Job
   terraform:
     needs: build-and-push
     runs-on: ubuntu-latest
