@@ -35,13 +35,17 @@ func main() {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
 	})
+	// Handler for /api/v1/users/ endpoint (GET, PUT, DELETE)
 	mux.HandleFunc("/api/v1/users/", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
+			// Get a single user by ID
 			handlers.GetUserHandler(w, r)
 		case http.MethodPut:
+			// Update a user by ID
 			handlers.UpdateUserHandler(w, r)
 		case http.MethodDelete:
+			// Delete a user by ID
 			handlers.DeleteUserHandler(w, r)
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)

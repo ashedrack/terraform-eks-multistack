@@ -8,7 +8,6 @@ on:
 
 env:
   AWS_REGION: eu-west-2
-  # Make sure these secrets are configured in your GitHub repository settings
   ECR_GO_REPO: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-2.amazonaws.com/go-backend
   ECR_JAVA_REPO: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-2.amazonaws.com/java-backend
 
@@ -36,14 +35,24 @@ jobs:
         with:
           go-version: '1.22' # Ensure this matches the Go version declared in your backend-go/go.mod
 
-      - name: Tidy Go modules
-        # This step now simply runs 'go mod tidy'
-        # It relies on backend-go/go.mod having correctly pinned versions.
-        # The 'go get -u' and 'go clean -modcache' workarounds are removed.
+      - name: Verify Go version
+        run: go version # Confirm the Go version being used by the runner
+
+      - name: Fetch and Tidy Go modules
         run: |
           cd backend-go
-          go mod tidy # This will update go.sum if needed and verify go.mod
-          cd ..
+          echo "Attempting to resolve problematic http-swagger/v2 dependency directly..."
+          # Force Go to fetch this specific module directly from GitHub, bypassing proxy.
+          # This is a workaround for persistent 'unknown revision' errors.
+          GOPROXY=direct go get github.com/swaggo/http-swagger/v2@v2.0.14
+          
+          # Then, run go mod tidy to update go.sum based on the resolved version
+          go mod tidy
+          
+          # Optional: Verify module integrity
+          go mod verify
+          echo "Go module operations completed successfully."
+          cd -- # Go back to the root directory
       # --- END GO LANGUAGE SPECIFIC SETUP ---
 
       # Build and push Go backend
@@ -69,28 +78,23 @@ jobs:
   # Optionally add jobs for Terraform and EKS deployment here
 
   # Example: Terraform Plan/Apply Job
-  # This job will run after 'build-and-push' successfully completes.
   terraform:
-    needs: build-and-push # Ensures Docker images are built and pushed first
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # Checks out the repository code
+      - uses: actions/checkout@v4
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3 # Sets up the Terraform CLI
+        uses: hashicorp/setup-terraform@v3
       - name: Terraform Init
-        # Assuming your Terraform configuration is in a directory named 'infra'
         run: terraform -chdir=infra init
       - name: Terraform Plan
-        # Executes a Terraform plan to show what changes would be made
         run: terraform -chdir=infra plan
-      # Uncomment the following step to enable automatic apply in CI/CD (use with caution!)
       # - name: Terraform Apply
       #   run: terraform -chdir=infra apply -auto-approve
 
   # Example: Deploy to EKS Job
-  # This job will run after 'build-and-push' successfully completes.
   deploy:
-    needs: build-and-push # Ensures Docker images are built and pushed first
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -103,15 +107,10 @@ jobs:
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
         with:
-          version: 'latest' # Installs the latest version of kubectl
+          version: 'latest'
       - name: Update Kubeconfig
-        # This command updates your kubectl configuration to connect to your EKS cluster.
-        # Replace <your-eks-cluster-name> with the actual name of your EKS cluster.
         run: aws eks update-kubeconfig --region $AWS_REGION --name <your-eks-cluster-name>
       - name: Deploy to EKS
-        # These commands deploy your Go and Java backends to EKS.
-        # Replace <namespace> with your Kubernetes namespace.
-        # Ensure your deployment YAML files are correctly configured to use these images.
         run: |
           kubectl set image deployment/go-backend go-backend=$ECR_GO_REPO:latest -n <namespace>
           kubectl set image deployment/java-backend java-backend=$ECR_JAVA_REPO:latest -n <namespace>
