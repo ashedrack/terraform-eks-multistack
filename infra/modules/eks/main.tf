@@ -12,5 +12,13 @@ module "eks" {
   # AWS auth configuration
   manage_aws_auth_configmap = true
   
+  # Fix for the for_each error
+  iam_role_use_name_prefix = false
+  
+  # Fix for the CNI policy issue
+  eks_managed_node_group_defaults = {
+    iam_role_attach_cni_policy = true
+  }
+  
   tags = var.tags
 }
