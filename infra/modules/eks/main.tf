@@ -15,10 +15,19 @@ module "eks" {
   # Fix for the for_each error
   iam_role_use_name_prefix = false
   
-  # Fix for the CNI policy issue
+  # Fix for the CNI policy issue by explicitly defining policies
+  # This avoids the dynamic for_each that causes the error
   eks_managed_node_group_defaults = {
-    iam_role_attach_cni_policy = true
+    iam_role_additional_policies = {
+      # Use predefined policies instead of dynamic CNI policy
+      AmazonEKSWorkerNodePolicy          = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+      AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+      AmazonEKS_CNI_Policy               = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+    }
   }
+  
+  # Disable features that use for_each with computed values
+  create_cloudwatch_log_group = false
   
   tags = var.tags
 }
