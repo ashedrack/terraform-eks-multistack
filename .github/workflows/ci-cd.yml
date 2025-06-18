@@ -88,21 +88,29 @@ jobs:
         uses: hashicorp/setup-terraform@v3
       - name: Terraform Init
         run: terraform -chdir=infra/environments/dev init
-      - name: Terraform Plan
-        id: plan
-        continue-on-error: true
-        run: terraform -chdir=infra/environments/dev plan -out=tfplan
-        
-      - name: Check Plan Status
-        if: steps.plan.outcome == 'failure'
+      - name: Terraform Plan IAM Roles First
         run: |
-          echo "Terraform plan had warnings but we'll continue anyway"
-          terraform -chdir=infra/environments/dev plan -out=tfplan
+          cd infra/environments/dev
+          terraform plan -target=module.eks.aws_iam_role.cluster -target=module.eks.aws_iam_role.node_group -out=tfplan_roles
           
-      - name: Terraform Apply
-        id: apply
+      - name: Terraform Apply IAM Roles First
+        run: |
+          cd infra/environments/dev
+          terraform apply -auto-approve tfplan_roles
+          
+      - name: Terraform Plan Full
+        id: plan_full
         continue-on-error: true
-        run: terraform -chdir=infra/environments/dev apply -auto-approve
+        run: |
+          cd infra/environments/dev
+          terraform plan -out=tfplan_full
+          
+      - name: Terraform Apply Full
+        id: apply_full
+        continue-on-error: true
+        run: |
+          cd infra/environments/dev
+          terraform apply -auto-approve tfplan_full
 
   # Deploy to EKS Job
   deploy:
