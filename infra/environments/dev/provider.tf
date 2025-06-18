@@ -10,11 +10,6 @@ terraform {
 
 provider "aws" {
   region = var.region
-
-  # For local development, you can uncomment these lines and provide your credentials
-  # access_key = "YOUR_ACCESS_KEY"
-  # secret_key = "YOUR_SECRET_KEY"
-  
-  # Alternatively, you can use a profile from your AWS credentials file
-  # profile = "default"
+  # The GitHub Actions workflow will provide credentials via environment variables
+  # No need to specify credentials here
 }
