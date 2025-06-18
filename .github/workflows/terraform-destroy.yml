@@ -21,9 +21,8 @@ jobs:
           # These secrets must be configured in your GitHub repository settings
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          # The AWS_REGION is pulled from a higher-level environment variable (e.g., from your main CI/CD workflow env)
-          # or an explicit env block in this job if needed.
-          aws-region: us-east-1 
+          # Using the same region as defined in variables.tf
+          aws-region: eu-west-2
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
